@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Nextpad — 给每个 Claude 会话，一块自动跟随的便签</title>
+<meta name="description" content="一枚浮在屏幕角落的原生 macOS 小工具：用 Claude 时记下待发指令，切换会话便签自动跟随，零点击、绝不串台。只读会话编号，一个字的对话都不读。开源免费。" />
+<meta property="og:title" content="Nextpad — 自动跟随 Claude 会话的便签" />
+<meta property="og:description" content="切到哪个 Claude 会话，便签就跟到哪。零点击，只读会话编号，开源免费。" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500..600&family=Noto+Serif+SC:wght@500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --serif:'Songti SC','STSong','Noto Serif SC',Georgia,serif;
+    --sans:'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif;
+    --fraunces:'Fraunces','Songti SC','Noto Serif SC',serif;
+    --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+    --paper:#FFFFFF;--ink:#1B1B1B;--soft:#5A5C5E;--muted:#9CA0A2;--rule:#ECECEB;--rule-strong:#DBDBDA;--card:#FAFAF9;
+    --editor:#191922;--editor-ink:#F0EEE7;
+    --a-purple:#8A43E6;--a-blue:#4FA8F0;--a-green:#1FA45D;--a-orange:#F4811E;--a-coral:#E8482A;
+    --t-purple:#DEC9F5;--t-blue:#D2E9FB;--t-green:#ACE7C4;--t-orange:#FBD6A0;
+    --r-input:12px;--r-card:14px;--r-pill:999px;
+    --sh-sm:0 1px 2px rgba(20,20,20,.08);--sh-raise:0 3px 10px rgba(27,27,27,.22);--sh-card:0 12px 34px rgba(40,30,20,.16);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  html{font-size:16px;scroll-behavior:smooth}
+  body{background:var(--paper);color:var(--ink);font-family:var(--serif);line-height:1.6;overflow-x:hidden}
+  a{color:inherit}
+  .wrap{max-width:960px;margin:0 auto;padding:0 22px}
+  .read{max-width:680px}
+  .eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:700}
+
+  /* nav — floating pill */
+  nav{position:sticky;top:14px;z-index:50;margin:14px auto 0;max-width:960px;padding:0 22px}
+  .navbar{display:flex;align-items:center;justify-content:space-between;gap:14px;background:rgba(255,255,255,.82);backdrop-filter:saturate(1.4) blur(10px);border:1px solid var(--rule);border-radius:var(--r-pill);padding:9px 10px 9px 16px;box-shadow:var(--sh-sm)}
+  .brand{display:flex;align-items:center;gap:9px;text-decoration:none}
+  .brand .wm{font-family:var(--fraunces);font-weight:700;font-size:17px;letter-spacing:-.01em}
+  .nav-r{display:flex;align-items:center;gap:6px}
+
+  /* buttons */
+  .btn{font-family:var(--sans);font-weight:600;font-size:13.5px;border:none;cursor:pointer;padding:10px 18px;border-radius:var(--r-pill);display:inline-flex;align-items:center;gap:7px;transition:filter .2s,transform .15s,border-color .2s;text-decoration:none;white-space:nowrap}
+  .btn:hover{transform:translateY(-1px)}.btn:active{transform:translateY(0)}
+  .btn.pri{background:var(--ink);color:#fff;box-shadow:0 3px 10px rgba(27,27,27,.22)}
+  .btn.pri:hover{filter:brightness(1.55)}
+  .btn.sec{background:var(--card);color:var(--ink);border:1px solid var(--rule-strong)}
+  .btn.sec:hover{border-color:var(--ink)}
+  .ter{background:none;border:none;font-family:var(--serif);font-size:14px;color:var(--ink);cursor:pointer;border-bottom:1px solid var(--rule-strong);padding:0 0 2px;display:inline-flex;gap:6px;align-items:center}
+  .ter:hover{border-bottom-color:var(--ink)} .ter .arw{transition:transform .2s}.ter:hover .arw{transform:translateX(3px)}
+
+  /* hero */
+  .hero{position:relative;padding:64px 0 36px}
+  .glow{position:absolute;inset:0;pointer-events:none;z-index:0;background:
+     radial-gradient(420px 300px at 78% 30%,rgba(138,67,230,.10),transparent 70%),
+     radial-gradient(460px 320px at 88% 64%,rgba(244,129,30,.10),transparent 72%),
+     radial-gradient(520px 360px at 60% 50%,rgba(79,168,240,.08),transparent 75%)}
+  .hero-grid{position:relative;z-index:1;display:flex;flex-direction:column;gap:40px}
+  .h1{font-family:var(--serif);font-weight:700;font-size:38px;line-height:1.28;letter-spacing:-.01em;margin:14px 0 0}
+  .h1 .u{background:linear-gradient(transparent 66%,var(--t-blue) 0);padding:0 .04em}
+  .lede{font-size:16.5px;line-height:1.85;color:var(--soft);margin:18px 0 26px;max-width:30em}
+  .hero-cta{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .suite{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--muted);margin-top:26px}
+  .suite b{color:var(--soft);font-weight:700}
+
+  /* the pad mockup (hero visual = real product fragment) */
+  .stage{display:flex;justify-content:center;align-items:flex-start}
+  .pad{width:300px;background:#FBF8F3;border-radius:16px;box-shadow:var(--sh-card);overflow:hidden;border:1px solid #EFE7D8}
+  .pad-b{display:flex;align-items:center;gap:7px;padding:10px 12px 7px}
+  .pad-b .wm2{font-family:var(--sans);font-weight:600;font-size:12.5px;color:#1A1A1F}
+  .pad-b .dash{margin-left:auto;width:11px;height:2px;border-radius:1px;background:#A79D8E}
+  .pad-s{display:flex;align-items:center;gap:7px;padding:2px 13px 9px}
+  .pad-s .dot{width:8px;height:8px;border-radius:50%;background:var(--a-green)}
+  .pad-s .lab{font-family:var(--sans);font-weight:600;font-size:12px;color:#1A1A1F}
+  .pad-s .cnt{margin-left:auto;font-family:var(--sans);font-size:11px;color:#A79D8E}
+  .pad hr{border:none;height:1px;background:#EBE3D5;margin:0}
+  .pad-add{margin:9px 12px 8px;padding:9px 10px;background:#FFFEFB;border:1px solid #DED5C4;border-radius:9px;font-family:var(--sans);font-size:12px;color:#A79D8E}
+  .pad-list{padding:2px 10px 12px;display:flex;flex-direction:column;gap:7px}
+  .dcard{position:relative;background:#FFFEFB;border:1px solid #EBE3D5;border-radius:10px;padding:9px 11px 9px 13px;font-family:var(--sans);font-size:12.5px;line-height:1.55;color:#1A1A1F}
+  .dcard::before{content:"";position:absolute;left:4px;top:6px;bottom:6px;width:3px;border-radius:2px;background:var(--ac)}
+
+  /* sections */
+  section{padding:30px 0}
+  .sec-h{display:flex;align-items:baseline;gap:11px;margin-bottom:18px}
+  .sec-h .idx{font-family:var(--mono);font-size:11px;color:var(--a-blue);font-weight:700}
+  .sec-h h2{font-family:var(--serif);font-weight:600;font-size:25px;letter-spacing:-.01em}
+  .lead-p{font-size:16px;line-height:1.95;color:var(--ink)}
+  .lead-p .hl{background:linear-gradient(transparent 66%,var(--t-orange) 0);padding:0 .04em}
+
+  /* highlights */
+  .hl-grid{display:grid;gap:14px;grid-template-columns:1fr}
+  .hcard{border:1px solid var(--rule);border-radius:var(--r-card);background:var(--card);padding:20px;box-shadow:var(--sh-sm)}
+  .hicon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;margin-bottom:13px}
+  .hcard h3{font-family:var(--serif);font-weight:600;font-size:17px;margin-bottom:7px}
+  .hcard p{font-size:14px;line-height:1.78;color:var(--soft)}
+  .hcard .k{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.04em;margin-top:11px}
+
+  /* how — steps */
+  .steps{display:flex;flex-direction:column;gap:2px;margin-top:6px}
+  .step{display:flex;gap:14px;padding:14px 0;border-top:1px solid var(--rule)}
+  .step .n{font-family:var(--mono);font-weight:700;font-size:12px;color:var(--a-blue);flex:none;width:22px;padding-top:2px}
+  .step .t{font-size:14.5px;line-height:1.7}
+  .step .t b{font-weight:600}
+  .step .t .m{font-family:var(--mono);font-size:12.5px;background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:1px 6px;color:var(--ink)}
+
+  /* install block */
+  .install{border:1px solid var(--rule-strong);border-radius:var(--r-card);background:var(--card);overflow:hidden;margin-top:18px}
+  .install .ih{display:flex;align-items:center;gap:9px;padding:12px 15px;border-bottom:1px solid var(--rule)}
+  .install .ih .tag{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--a-blue);background:var(--t-blue);border-radius:var(--r-pill);padding:3px 10px}
+  .install .ih .ttl{font-family:var(--sans);font-size:13px;color:var(--soft)}
+  .install .ih .copy{margin-left:auto}
+  .install pre{font-family:var(--mono);font-size:12px;line-height:1.85;color:#33312c;padding:15px;white-space:pre-wrap;word-break:break-word;background:#FBFAF7}
+  .install pre .c{color:var(--a-purple)}
+
+  /* CTA dark */
+  .cta{background:var(--editor);color:var(--editor-ink);border-radius:22px;padding:44px 30px;text-align:center;margin:14px 0}
+  .cta h2{font-family:var(--serif);font-weight:600;font-size:25px;margin-bottom:10px;color:#fff}
+  .cta p{font-size:14.5px;color:#c6c1b8;max-width:30em;margin:0 auto 22px;line-height:1.8}
+  .cta .row{display:flex;gap:14px;justify-content:center;align-items:center;flex-wrap:wrap}
+  .cta .btn.pri{background:#fff;color:var(--ink)} .cta .btn.pri:hover{filter:brightness(.92)}
+  .cta .ghl{color:#c6c1b8;border-bottom-color:rgba(255,255,255,.3)}.cta .ghl:hover{color:#fff}
+
+  /* footer */
+  footer{border-top:1px solid var(--rule);margin-top:30px;padding:28px 0 56px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:var(--muted)}
+  footer .f-wm{font-family:var(--fraunces);font-weight:700;font-size:15px;color:var(--ink)}
+  footer .f-meta{font-family:var(--mono);font-size:10.5px;line-height:1.7}
+  footer a{color:var(--soft);text-decoration:none;border-bottom:1px solid var(--rule-strong)}
+
+  /* toast */
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--ink);color:#fff;border-radius:var(--r-pill);padding:11px 20px;font-family:var(--sans);font-size:13.5px;box-shadow:var(--sh-raise);transition:opacity .2s,transform .2s;pointer-events:none;z-index:99}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media(min-width:760px){
+    .h1{font-size:50px}
+    .hero{padding:80px 0 56px}
+    .hero-grid{flex-direction:row;align-items:center;gap:30px}
+    .hero-grid .htext{flex:1}
+    .hero-grid .stage{flex:none;width:340px}
+    .hl-grid{grid-template-columns:repeat(3,1fr)}
+    .sec-h h2{font-size:28px}
+    .cta{padding:60px 40px}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="navbar">
+    <a class="brand" href="#top">
+      <svg width="26" height="26" viewBox="0 0 100 100" aria-hidden="true"><rect x="5" y="5" width="90" height="90" rx="20" fill="#FFFEFB" stroke="#DED5C4" stroke-width="1.5"/><rect x="26" y="31" width="48" height="9" rx="4.5" fill="#8A43E6"/><rect x="26" y="45.5" width="48" height="9" rx="4.5" fill="#4FA8F0"/><rect x="26" y="60" width="33" height="9" rx="4.5" fill="#1FA45D"/><rect x="65" y="60" width="9" height="9" rx="2.7" fill="#F4811E"/></svg>
+      <span class="wm">Nextpad</span>
+    </a>
+    <div class="nav-r">
+      <a class="btn sec" href="https://github.com/EarthOnlineLabs/nextpad" target="_blank" rel="noopener">源码</a>
+      <a class="btn pri" href="#install">安装</a>
+    </div>
+  </div>
+</nav>
+
+<a id="top"></a>
+<header class="hero">
+  <div class="glow"></div>
+  <div class="wrap hero-grid">
+    <div class="htext">
+      <p class="eyebrow">Earth Online Lab · 开源工具</p>
+      <h1 class="h1">给每个 Claude 会话，<br>一块<span class="u">自动跟随</span>的便签。</h1>
+      <p class="lede">用 Claude 时随时想到「待会还要让它做 X」，记一条进去。切到哪个会话，便签就跟到哪——零点击，绝不串台。</p>
+      <div class="hero-cta">
+        <button class="btn pri" onclick="copyPrompt()">复制安装指令</button>
+        <a class="ter" href="#how">看看怎么用 <span class="arw">↓</span></a>
+      </div>
+      <p class="suite"><b>开源 · 免费</b> · 原生 macOS · 为 Claude 用户打造</p>
+    </div>
+    <div class="stage">
+      <div class="pad" role="img" aria-label="Nextpad 浮窗示意">
+        <div class="pad-b">
+          <svg width="18" height="18" viewBox="0 0 100 100" aria-hidden="true"><rect x="5" y="5" width="90" height="90" rx="20" fill="#FFFEFB" stroke="#DED5C4" stroke-width="1.5"/><rect x="26" y="31" width="48" height="9" rx="4.5" fill="#8A43E6"/><rect x="26" y="45.5" width="48" height="9" rx="4.5" fill="#4FA8F0"/><rect x="26" y="60" width="33" height="9" rx="4.5" fill="#1FA45D"/><rect x="65" y="60" width="9" height="9" rx="2.7" fill="#F4811E"/></svg>
+          <span class="wm2">Nextpad</span><span class="dash"></span>
+        </div>
+        <div class="pad-s"><span class="dot"></span><span class="lab">api-server</span><span class="cnt">3 条</span></div>
+        <hr>
+        <div class="pad-add">写下一条待发指令…&nbsp; Enter 添加</div>
+        <div class="pad-list">
+          <div class="dcard" style="--ac:#8A43E6">把登录接口的错误处理补全，401 和超时分开提示</div>
+          <div class="dcard" style="--ac:#4FA8F0">等上面跑完，给这个组件补单元测试</div>
+          <div class="dcard" style="--ac:#1FA45D">整理一下 README 的安装步骤</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- what it is -->
+  <section class="wrap">
+    <div class="read">
+      <p class="lead-p">多个会话并行时，灵感冒出来，却记不清这条该发给哪个会话。Nextpad 把便签<span class="hl">按会话自动绑定</span>——不用建文件夹、不用打标签，切换会话时它自己跟着换。省去你在飞书自聊里手动分类、还总是发错地方。</p>
+    </div>
+  </section>
+
+  <!-- highlights -->
+  <section class="wrap" id="highlights">
+    <div class="sec-h"><span class="idx">01</span><h2>三个亮点</h2></div>
+    <div class="hl-grid">
+      <div class="hcard">
+        <div class="hicon" style="background:var(--t-blue)">⤵</div>
+        <h3>零点击自动跟随</h3>
+        <p>切换 Claude 会话，便签内容自动跟着切，几乎瞬时跟手。不用点、不用选，这是它存在的全部理由。</p>
+        <div class="k">~10ms 响应</div>
+      </div>
+      <div class="hcard">
+        <div class="hicon" style="background:var(--t-green)">●</div>
+        <h3>一个字都不读</h3>
+        <p>只读取「当前是哪个会话」的一个编号，从不打开你的对话记录。全程本地、开源，代码 700 行，自己就能看懂。</p>
+        <div class="k">仅 session ID</div>
+      </div>
+      <div class="hcard">
+        <div class="hicon" style="background:var(--t-orange)">◇</div>
+        <h3>小巧原生</h3>
+        <p>原生 macOS App，不是 Electron。无账号、无后台、卸载不留痕。一枚安静浮在屏幕角落的小药丸。</p>
+        <div class="k">~1MB · 无需 Apple 账号</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- how to use -->
+  <section class="wrap" id="how">
+    <div class="sec-h"><span class="idx">02</span><h2>怎么用</h2></div>
+    <div class="read">
+      <p class="lead-p" style="margin-bottom:6px">安装不用懂代码——<b style="color:var(--ink)">你已经有 Claude，让它替你装</b>。复制下面这段，粘给 Claude，按提示点几下同意即可。</p>
+    </div>
+
+    <div class="install read" id="install">
+      <div class="ih">
+        <span class="tag">粘给 Claude</span>
+        <span class="ttl">一次性安装</span>
+        <button class="btn sec copy" onclick="copyPrompt()">复制</button>
+      </div>
+      <pre id="prompt"><span class="c">帮我在这台 Mac 上安装并运行 Nextpad</span> —— 一个浮在屏幕角落、自动跟随我当前 Claude 会话的便签小工具（开源，只读「当前会话编号」，不读任何对话内容）。请全自动完成，遇到下面的已知情况自行处理，装好后用一句话告诉我怎么用：
+
+1. 确认有 Swift 编译环境（命令 swiftc）；没有就先装：xcode-select --install（会弹安装窗，我点同意）。
+2. 克隆源码并编译运行：git clone https://github.com/EarthOnlineLabs/nextpad ~/.nextpad （已存在就 cd ~/.nextpad && git pull），然后 cd ~/.nextpad && ./build.sh run
+3. 若编译报错提到 SwiftBridging 或重复的 module.modulemap：按 build.sh 打印的提示执行那条 sudo mv 命令（会让我输一次 Mac 登录密码），再重新 ./build.sh run
+4. 确认 Nextpad 浮窗出现在屏幕右上角（它不在程序坞里）。
+5. 复制 ~/.nextpad/build/Nextpad.app 到「应用程序」，并设为登录时自动启动。
+
+全程本地编译，不需要任何 Apple 账号或证书。</pre>
+    </div>
+
+    <div class="read" style="margin-top:30px">
+      <p class="eyebrow" style="margin-bottom:6px">装好之后，日常就四件事</p>
+      <div class="steps">
+        <div class="step"><span class="n">记</span><span class="t"><b>记一条</b>：在输入框打字，回车，存好。</span></div>
+        <div class="step"><span class="n">跟</span><span class="t"><b>自动跟随</b>：切到另一个 Claude 会话，便签内容自动跟着换——零操作。</span></div>
+        <div class="step"><span class="n">用</span><span class="t"><b>用一条</b>：点一下卡片 = 自动复制，回 Claude 粘贴发送。</span></div>
+        <div class="step"><span class="n">收</span><span class="t"><b>收起</b>：点右上角小横杠缩成小药丸，点药丸再展开。</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="wrap">
+    <div class="cta">
+      <h2>给你的每个会话，一块便签。</h2>
+      <p>开源 · 免费 · 本地编译，不需要任何 Apple 账号。装一次，从此切换会话不再串台。</p>
+      <div class="row">
+        <button class="btn pri" onclick="copyPrompt()">复制安装指令</button>
+        <a class="ter ghl" href="https://github.com/EarthOnlineLabs/nextpad" target="_blank" rel="noopener">在 GitHub 查看 <span class="arw">→</span></a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="wrap">
+    <svg width="24" height="24" viewBox="0 0 100 100" aria-hidden="true"><rect x="5" y="5" width="90" height="90" rx="20" fill="#FFFEFB" stroke="#DED5C4" stroke-width="1.5"/><rect x="26" y="31" width="48" height="9" rx="4.5" fill="#8A43E6"/><rect x="26" y="45.5" width="48" height="9" rx="4.5" fill="#4FA8F0"/><rect x="26" y="60" width="33" height="9" rx="4.5" fill="#1FA45D"/><rect x="65" y="60" width="9" height="9" rx="2.7" fill="#F4811E"/></svg>
+    <div>
+      <div class="f-wm">Nextpad</div>
+      <div class="f-meta">Earth Online Lab · 开源 MIT · 为 Claude 用户打造<br><a href="https://github.com/EarthOnlineLabs/nextpad" target="_blank" rel="noopener">github.com/EarthOnlineLabs/nextpad</a></div>
+    </div>
+  </footer>
+</main>
+
+<div class="toast" id="toast">✓ 已复制 · 去粘给 Claude</div>
+
+<script>
+  function copyPrompt(){
+    var t = document.getElementById('prompt').innerText.trim();
+    navigator.clipboard.writeText(t).then(showToast).catch(function(){
+      var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy');showToast();}catch(e){}document.body.removeChild(ta);
+    });
+  }
+  function showToast(){
+    var el=document.getElementById('toast');el.classList.add('show');
+    clearTimeout(window.__tt);window.__tt=setTimeout(function(){el.classList.remove('show');},1900);
+  }
+</script>
+</body>
+</html>
