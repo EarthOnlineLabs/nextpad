@@ -283,14 +283,35 @@
 <script>
   function copyPrompt(){
     var t = document.getElementById('prompt').innerText.trim();
-    navigator.clipboard.writeText(t).then(showToast).catch(function(){
-      var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();
-      try{document.execCommand('copy');showToast();}catch(e){}document.body.removeChild(ta);
-    });
+    // navigator.clipboard exists only in a secure context (HTTPS/localhost). On plain HTTP it's
+    // undefined, so guard it and fall back to execCommand (which works inside a click handler).
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(t).then(
+        function(){ showToast('✓ 已复制 · 去粘给 Claude'); },
+        function(){ legacyCopy(t); }
+      );
+    } else {
+      legacyCopy(t);
+    }
   }
-  function showToast(){
-    var el=document.getElementById('toast');el.classList.add('show');
-    clearTimeout(window.__tt);window.__tt=setTimeout(function(){el.classList.remove('show');},1900);
+  function legacyCopy(t){
+    var ta = document.createElement('textarea');
+    ta.value = t; ta.setAttribute('readonly','');
+    ta.style.position='fixed'; ta.style.top='0'; ta.style.left='-9999px';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try { ta.setSelectionRange(0, t.length); } catch(e){}
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch(e){}
+    document.body.removeChild(ta);
+    showToast(ok ? '✓ 已复制 · 去粘给 Claude' : '复制失败，请手动选中文字复制');
+  }
+  function showToast(msg){
+    var el=document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(window.__tt);
+    window.__tt=setTimeout(function(){ el.classList.remove('show'); }, 2200);
   }
 </script>
 </body>
