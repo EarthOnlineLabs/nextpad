@@ -49,7 +49,7 @@
   .ter:hover{border-bottom-color:var(--ink)} .ter .arw{transition:transform .2s}.ter:hover .arw{transform:translateX(3px)}
 
   /* hero */
-  .hero{position:relative;padding:64px 0 36px}
+  .hero{position:relative;padding:64px 0 56px}
   .glow{position:absolute;inset:0;pointer-events:none;z-index:0;background:
      radial-gradient(420px 300px at 78% 30%,rgba(138,67,230,.10),transparent 70%),
      radial-gradient(460px 320px at 88% 64%,rgba(244,129,30,.10),transparent 72%),
@@ -79,12 +79,14 @@
   .dcard::before{content:"";position:absolute;left:4px;top:6px;bottom:6px;width:3px;border-radius:2px;background:var(--ac)}
 
   /* sections */
-  section{padding:30px 0}
-  .sec-h{display:flex;align-items:baseline;gap:11px;margin-bottom:18px}
+  section{padding:56px 0}
+  section + section{padding-top:0}
+  .sec-h{display:flex;align-items:baseline;gap:11px;margin-bottom:24px}
   .sec-h .idx{font-family:var(--mono);font-size:11px;color:var(--a-blue);font-weight:700}
   .sec-h h2{font-family:var(--serif);font-weight:600;font-size:25px;letter-spacing:-.01em}
   .lead-p{font-size:16px;line-height:1.95;color:var(--ink)}
   .lead-p .hl{background:linear-gradient(transparent 66%,var(--t-orange) 0);padding:0 .04em}
+  .lead-p{margin-bottom:16px}
 
   /* highlights */
   .hl-grid{display:grid;gap:14px;grid-template-columns:1fr}
@@ -103,7 +105,7 @@
   .step .t .m{font-family:var(--mono);font-size:12.5px;background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:1px 6px;color:var(--ink)}
 
   /* install block */
-  .install{border:1px solid var(--rule-strong);border-radius:var(--r-card);background:var(--card);overflow:hidden;margin-top:18px}
+  .install{border:1px solid var(--rule-strong);border-radius:var(--r-card);background:var(--card);overflow:hidden;margin-top:28px}
   .install .ih{display:flex;align-items:center;gap:9px;padding:12px 15px;border-bottom:1px solid var(--rule)}
   .install .ih .tag{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--a-blue);background:var(--t-blue);border-radius:var(--r-pill);padding:3px 10px}
   .install .ih .ttl{font-family:var(--sans);font-size:13px;color:var(--soft)}
@@ -112,7 +114,7 @@
   .install pre .c{color:var(--a-purple)}
 
   /* CTA dark */
-  .cta{background:var(--editor);color:var(--editor-ink);border-radius:22px;padding:44px 30px;text-align:center;margin:14px 0}
+  .cta{background:var(--editor);color:var(--editor-ink);border-radius:22px;padding:44px 30px;text-align:center;margin:20px 0}
   .cta h2{font-family:var(--serif);font-weight:600;font-size:25px;margin-bottom:10px;color:#fff}
   .cta p{font-size:14.5px;color:#c6c1b8;max-width:30em;margin:0 auto 22px;line-height:1.8}
   .cta .row{display:flex;gap:14px;justify-content:center;align-items:center;flex-wrap:wrap}
@@ -120,7 +122,7 @@
   .cta .ghl{color:#c6c1b8;border-bottom-color:rgba(255,255,255,.3)}.cta .ghl:hover{color:#fff}
 
   /* footer */
-  footer{border-top:1px solid var(--rule);margin-top:30px;padding:28px 0 56px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:var(--muted)}
+  footer{border-top:1px solid var(--rule);margin-top:48px;padding:36px 0 56px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:var(--muted)}
   footer .f-wm{font-family:var(--fraunces);font-weight:700;font-size:15px;color:var(--ink)}
   footer .f-meta{font-family:var(--mono);font-size:10.5px;line-height:1.7}
   footer a{color:var(--soft);text-decoration:none;border-bottom:1px solid var(--rule-strong)}
@@ -131,7 +133,7 @@
 
   @media(min-width:760px){
     .h1{font-size:50px}
-    .hero{padding:80px 0 56px}
+    .hero{padding:80px 0 64px}
     .hero-grid{flex-direction:row;align-items:center;gap:30px}
     .hero-grid .htext{flex:1}
     .hero-grid .stage{flex:none;width:340px}
