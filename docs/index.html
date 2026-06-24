@@ -165,7 +165,7 @@
       <h1 class="h1">给每个 Claude 会话，<br>一块<span class="u">自动跟随</span>的便签。</h1>
       <p class="lede">用 Claude 时随时想到「待会还要让它做 X」，记一条进去。切到哪个会话，便签就跟到哪——零点击，绝不串台。</p>
       <div class="hero-cta">
-        <button class="btn pri" onclick="copyPrompt()">复制安装指令</button>
+        <a class="btn pri" href="https://github.com/EarthOnlineLabs/nextpad/releases/latest/download/Nextpad.zip">下载 Nextpad.zip</a>
         <a class="ter" href="#how">看看怎么用 <span class="arw">↓</span></a>
       </div>
       <p class="suite"><b>开源 · 免费</b> · 原生 macOS · 为 Claude 用户打造</p>
@@ -226,16 +226,32 @@
   <section class="wrap" id="how">
     <div class="sec-h"><span class="idx">02</span><h2>怎么用</h2></div>
     <div class="read">
-      <p class="lead-p" style="margin-bottom:6px">安装不用懂代码——<b style="color:var(--ink)">你已经有 Claude，让它替你装</b>。复制下面这段，粘给 Claude，按提示点几下同意即可。</p>
+      <p class="lead-p" style="margin-bottom:6px">下载解压，拖进「应用程序」，搞定。</p>
     </div>
 
     <div class="install read" id="install">
       <div class="ih">
-        <span class="tag">粘给 Claude</span>
-        <span class="ttl">一次性安装</span>
-        <button class="btn sec copy" onclick="copyPrompt()">复制</button>
+        <span class="tag">推荐</span>
+        <span class="ttl">直接下载</span>
       </div>
-      <pre id="prompt"><span class="c">帮我在这台 Mac 上安装并运行 Nextpad</span> —— 一个浮在屏幕角落、自动跟随我当前 Claude 会话的便签小工具（开源，只读「当前会话编号」，不读任何对话内容）。请全自动完成，遇到下面的已知情况自行处理，装好后用一句话告诉我怎么用：
+      <div style="padding:18px 15px;font-family:var(--sans);font-size:14px;line-height:1.8;color:var(--soft)">
+        <p style="margin-bottom:12px"><b style="color:var(--ink)">三步搞定：</b></p>
+        <p>1. <a href="https://github.com/EarthOnlineLabs/nextpad/releases/latest/download/Nextpad.zip" style="color:var(--a-blue);font-weight:600">下载 Nextpad.zip</a>（310 KB），解压得到 Nextpad.app</p>
+        <p>2. 拖到「应用程序」文件夹</p>
+        <p>3. 首次打开：右键 → 打开 → 弹窗点「打开」（仅需一次）</p>
+        <p style="margin-top:14px;font-size:12.5px;color:var(--muted)">macOS 13+ · 无需 Apple 账号 · 不在程序坞显示，浮窗在屏幕右上角</p>
+      </div>
+    </div>
+
+    <details class="read" style="margin-top:16px">
+      <summary style="font-family:var(--sans);font-size:13px;color:var(--muted);cursor:pointer">或者：从源码编译（粘给 Claude 一段指令即可）</summary>
+      <div class="install" style="margin-top:10px">
+        <div class="ih">
+          <span class="tag">粘给 Claude</span>
+          <span class="ttl">一次性安装</span>
+          <button class="btn sec copy" onclick="copyPrompt()">复制</button>
+        </div>
+        <pre id="prompt"><span class="c">帮我在这台 Mac 上安装并运行 Nextpad</span> —— 一个浮在屏幕角落、自动跟随我当前 Claude 会话的便签小工具（开源，只读「当前会话编号」，不读任何对话内容）。请全自动完成，遇到下面的已知情况自行处理，装好后用一句话告诉我怎么用：
 
 1. 确认有 Swift 编译环境（命令 swiftc）；没有就先装：xcode-select --install（会弹安装窗，我点同意）。
 2. 克隆源码并编译运行：git clone https://github.com/EarthOnlineLabs/nextpad ~/.nextpad （已存在就 cd ~/.nextpad && git pull），然后 cd ~/.nextpad && ./build.sh run
@@ -244,7 +260,8 @@
 5. 复制 ~/.nextpad/build/Nextpad.app 到「应用程序」，并设为登录时自动启动。
 
 全程本地编译，不需要任何 Apple 账号或证书。</pre>
-    </div>
+      </div>
+    </details>
 
     <div class="read" style="margin-top:30px">
       <p class="eyebrow" style="margin-bottom:6px">装好之后，日常就四件事</p>
@@ -263,7 +280,7 @@
       <h2>给你的每个会话，一块便签。</h2>
       <p>开源 · 免费 · 本地编译，不需要任何 Apple 账号。装一次，从此切换会话不再串台。</p>
       <div class="row">
-        <button class="btn pri" onclick="copyPrompt()">复制安装指令</button>
+        <a class="btn pri" href="https://github.com/EarthOnlineLabs/nextpad/releases/latest/download/Nextpad.zip">下载 Nextpad.zip</a>
         <a class="ter ghl" href="https://github.com/EarthOnlineLabs/nextpad" target="_blank" rel="noopener">在 GitHub 查看 <span class="arw">→</span></a>
       </div>
     </div>
