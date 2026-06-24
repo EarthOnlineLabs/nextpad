@@ -147,16 +147,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    // Show only while Claude (or our own window) is frontmost.
-    // Never orderOut (that tears the window down → slow re-composite on show). Keep it composited;
-    // toggle visibility instantly via alpha + click-through. (Accumulation was .canJoinAllSpaces, now gone.)
-    private func setPanelVisible(_ v: Bool) {
-        panel?.alphaValue = v ? 1 : 0
-        panel?.ignoresMouseEvents = !v
-    }
-
-    // Poll the frontmost app on a fast, stateless timer — avoids any activation-notification
-    // delivery latency, can't accumulate.
+    // Poll frontmost app: Claude → track session; other apps → switch to general memo.
+    // Re-order panel to front on every switch so it stays above all windows.
     private var lastFront: String?
     private func setupActivationFollowing() {
         let timer = Timer(timeInterval: 0.08, repeats: true) { [weak self] _ in
@@ -166,10 +158,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self.lastFront = front
             let isClaude = front == "com.anthropic.claudefordesktop"
             let isSelf = front == Bundle.main.bundleIdentifier
-            vlog("poll front=\(front ?? "nil") show=\(isClaude || isSelf) alpha=\(self.panel?.alphaValue ?? -1)")
-            self.setPanelVisible(isClaude || isSelf)
+            vlog("poll front=\(front ?? "nil") isClaude=\(isClaude)")
+            if isClaude {
+                self.model.restoreClaudeSession()
+            } else if !isSelf {
+                self.model.focus("general")
+            }
+            if !isSelf { self.panel?.orderFrontRegardless() }
         }
-        RunLoop.main.add(timer, forMode: .common)  // keep firing during drags/tracking
+        RunLoop.main.add(timer, forMode: .common)
         vlog("setupActivationFollowing started")
     }
 

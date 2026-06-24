@@ -131,7 +131,11 @@ struct PanelView: View {
 
     private var sessionBar: some View {
         HStack(spacing: 7) {
-            Circle().fill(model.connected ? Theme.green : Theme.faint).frame(width: 8, height: 8)
+            if model.isGeneral {
+                Image(systemName: "note.text").font(.system(size: 10)).foregroundStyle(Theme.faint)
+            } else {
+                Circle().fill(model.connected ? Theme.green : Theme.faint).frame(width: 8, height: 8)
+            }
             if renaming {
                 TextField(model.shortId, text: $renameText)
                     .textFieldStyle(.plain).font(.system(size: 12, weight: .semibold))
@@ -140,7 +144,7 @@ struct PanelView: View {
                 Text(model.label).font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.ink)
                     .lineLimit(1).truncationMode(.tail)
                     .contentShape(Rectangle())
-                    .onTapGesture { renameText = model.nickname; renaming = true }
+                    .onTapGesture { if !model.isGeneral { renameText = model.nickname; renaming = true } }
                 Spacer(minLength: 4)
                 if !model.drafts.isEmpty {
                     Text("\(model.drafts.count) 条").font(.system(size: 11)).foregroundStyle(Theme.faint)
@@ -151,7 +155,7 @@ struct PanelView: View {
     }
 
     private var addRow: some View {
-        TextField("写下一条待发指令…  Enter 添加", text: $newText, axis: .vertical)
+        TextField(model.isGeneral ? "记点什么…  Enter 添加" : "写下一条待发指令…  Enter 添加", text: $newText, axis: .vertical)
             .textFieldStyle(.plain).font(.system(size: 12.5)).lineLimit(1...6)
             .padding(8)
             .background(Theme.card, in: RoundedRectangle(cornerRadius: 9))
@@ -167,9 +171,15 @@ struct PanelView: View {
     @ViewBuilder private var listOrEmpty: some View {
         if model.drafts.isEmpty {
             VStack(spacing: 8) {
-                Text("这个会话还没有待发指令。").font(.system(size: 12)).foregroundStyle(Theme.muted)
-                Text("切到另一个 Claude 会话 → 这里会自动跟着变。").font(.system(size: 11)).foregroundStyle(Theme.faint)
-                    .multilineTextAlignment(.center)
+                if model.isGeneral {
+                    Text("还没有备忘。").font(.system(size: 12)).foregroundStyle(Theme.muted)
+                    Text("随手记一条，随时能找到。").font(.system(size: 11)).foregroundStyle(Theme.faint)
+                        .multilineTextAlignment(.center)
+                } else {
+                    Text("这个会话还没有备忘。").font(.system(size: 12)).foregroundStyle(Theme.muted)
+                    Text("切到另一个会话，这里会自动跟着变。").font(.system(size: 11)).foregroundStyle(Theme.faint)
+                        .multilineTextAlignment(.center)
+                }
             }
             .frame(maxWidth: .infinity).padding(.vertical, 22).padding(.horizontal, 16)
             Spacer(minLength: 0)

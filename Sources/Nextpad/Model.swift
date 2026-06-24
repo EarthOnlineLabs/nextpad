@@ -42,8 +42,9 @@ final class AppModel: ObservableObject {
     // Derived view state
     var drafts: [Draft] { store.stash[currentSessionId] ?? [] }
     var nickname: String { store.nicknames[currentSessionId] ?? "" }
+    var isGeneral: Bool { currentSessionId == "general" }
     var shortId: String {
-        guard currentSessionId != "general" else { return "General" }
+        guard currentSessionId != "general" else { return "备忘录" }
         var s = currentSessionId
         if s.hasPrefix("local_") { s.removeFirst(6) }
         if s.hasPrefix("ditto_") { s.removeFirst(6) }
@@ -72,8 +73,21 @@ final class AppModel: ObservableObject {
     func setPos(_ x: Double, _ y: Double) { store.pos = [x, y]; save() }
     func setPanelSize(_ w: Double, _ h: Double) { store.panelSize = [w, h]; save() }
 
+    // Track last Claude session so we can restore it instantly on app-switch back.
+    private var lastClaudeSessionId: String?
+
     // From SessionFocusWatcher (main thread)
-    func focus(_ sid: String) { vlog("model.focus \(sid) was=\(currentSessionId)"); if sid != currentSessionId { currentSessionId = sid } }
+    func focus(_ sid: String) {
+        vlog("model.focus \(sid) was=\(currentSessionId)")
+        if sid != "general" { lastClaudeSessionId = sid }
+        if sid != currentSessionId { currentSessionId = sid }
+    }
+    func restoreClaudeSession() {
+        if let sid = lastClaudeSessionId, sid != currentSessionId {
+            vlog("model.restoreClaude → \(sid)")
+            currentSessionId = sid
+        }
+    }
     func setConnected(_ c: Bool) { if c != connected { connected = c } }
 
     func flash(_ s: String) {
