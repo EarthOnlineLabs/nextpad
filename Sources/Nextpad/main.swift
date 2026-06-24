@@ -90,7 +90,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var tailer: LogTailer?
 
     func applicationDidFinishLaunching(_ note: Notification) {
-        NSApp.setActivationPolicy(.accessory) // no Dock icon
+        NSApp.setActivationPolicy(.regular)
         buildMenu() // enables Cmd+C/V/X/A (paste!) + Cmd+Q via the responder chain
         controller = PanelController(model: model)
 

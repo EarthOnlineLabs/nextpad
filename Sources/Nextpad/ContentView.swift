@@ -43,6 +43,7 @@ struct BubbleView: View {
             }
             // AppKit-level drag+click: move on drag, expand only on a no-move click
             .overlay { DragClickCatcher(onClick: onExpand, onMoved: onMoved) }
+            .contextMenu { Button("退出 Nextpad") { NSApp.terminate(nil) } }
     }
 }
 
@@ -127,6 +128,7 @@ struct PanelView: View {
             .buttonStyle(.plain)
         }
         .padding(.horizontal, 11).padding(.top, 9).padding(.bottom, 7)
+        .contextMenu { Button("退出 Nextpad") { NSApp.terminate(nil) } }
     }
 
     private var sessionBar: some View {
